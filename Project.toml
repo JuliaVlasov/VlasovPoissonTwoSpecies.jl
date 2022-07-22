@@ -3,6 +3,9 @@ uuid = "0908af79-62bb-42cc-8e08-aedff2501cf5"
 authors = ["Julia Vlasov"]
 version = "0.1.0"
 
+[deps]
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+
 [compat]
 julia = "1.6"
 
