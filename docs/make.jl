@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/juliavlasov/VlasovPoissonTwoSpecies.jl",
+    repo="github.com/JuliaVlasov/VlasovPoissonTwoSpecies.jl",
     devbranch="main",
 )
