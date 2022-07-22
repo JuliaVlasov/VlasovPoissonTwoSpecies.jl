@@ -6,11 +6,11 @@ DocMeta.setdocmeta!(VlasovPoissonTwoSpecies, :DocTestSetup, :(using VlasovPoisso
 makedocs(;
     modules=[VlasovPoissonTwoSpecies],
     authors="Julia Vlasov",
-    repo="https://github.com/pnavaro/VlasovPoissonTwoSpecies.jl/blob/{commit}{path}#{line}",
+    repo="https://github.com/juliavlasov/VlasovPoissonTwoSpecies.jl/blob/{commit}{path}#{line}",
     sitename="VlasovPoissonTwoSpecies.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://pnavaro.github.io/VlasovPoissonTwoSpecies.jl",
+        canonical="https://juliavlasov.github.io/VlasovPoissonTwoSpecies.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/pnavaro/VlasovPoissonTwoSpecies.jl",
+    repo="github.com/juliavlasov/VlasovPoissonTwoSpecies.jl",
     devbranch="main",
 )
