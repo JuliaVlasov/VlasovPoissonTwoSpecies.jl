@@ -1,17 +1,3 @@
-export Coef
-
-Base.@kwdef mutable struct Coef
-	solution:: Symbol  = :JacobiDN
-    lambda :: Float64 = 1.
-    a :: Float64 =  -1.
-    b :: Float64 = 1 + sqrt(2) + 0.12
-    c :: Float64 = 1.
-    m :: Float64 = 0.97
-    x0 :: Float64 = 0.
-end
-
-getindex(c::Coef, s::String) = s
-
 export Data
 
 Base.@kwdef mutable struct Data
