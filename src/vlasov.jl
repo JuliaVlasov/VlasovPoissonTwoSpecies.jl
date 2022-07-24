@@ -1,9 +1,4 @@
-#from tool_box import integrate
-#from equilibrium_manager import EquilibriumManager
-#from scheme import Scheme
-#from output_manager import OutputManager
-#from profile_exec_time import profile
-
+export perturbate_func
 
 function perturbate_func(mesh_x, mesh_v, f, p)
     x = mesh_x.x
@@ -13,6 +8,8 @@ function perturbate_func(mesh_x, mesh_v, f, p)
     [(1 + p(x[i], v[j])) * f[i, j] for i = 1:nx, j = 1:nv]
 end
 
+
+export get_equilibriums
 
 function get_equilibriums(eq_manager; perturbated = false, epsilon = 1e-3)
 

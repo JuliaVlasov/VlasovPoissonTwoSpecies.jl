@@ -1,4 +1,5 @@
 using FFTW
+using OMEinsum
 import Statistics: mean
 
 function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, order=2)
@@ -46,6 +47,8 @@ function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, ord
     end
 end
 
+export Scheme
+
 
 struct Scheme
 
@@ -66,6 +69,7 @@ struct Scheme
     dv_fe_eq:: Matrix{Float64}
     dv_fi_eq:: Matrix{Float64}
     wb_scheme :: Bool
+    e_projection :: Vector{Float64}
 
     function Scheme( mesh_x, mesh_v, fe, fi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq,
         dv_fe_eq, dv_fi_eq, wb_scheme)
@@ -85,8 +89,11 @@ struct Scheme
             gi   .= fi .- fi_eq
         end
 
+        e_projection = similar(e_eq)
+
         new( mesh_x, mesh_v, advection_x, advection_v, fe, fi, ge, gi, ρ_eq, e_eq,
-            fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq, wb_scheme)
+            fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq, wb_scheme,
+            e_projection )
 
     end
 
@@ -169,6 +176,7 @@ function compute_wb_vlasov_2(self, dt)
 
 end
 
+export compute_iteration
 
 function compute_iteration(self, dt)
     if !self.wb_scheme
@@ -179,26 +187,86 @@ function compute_iteration(self, dt)
     end
 end
 
+function get_df_FD_matrix(size_f, order=8)
+
+    A = zeros(size_f, size_f)
+
+    if order == 2
+        coef_right = [0.5]
+    elseif order == 4
+        coef_right = [2 / 3, -1 / 12]
+    elseif order == 6
+        coef_right = [3 / 4, -3 / 20, 1 / 60]
+    elseif order == 8
+        coef_right = [4 / 5, -1 / 5, 4 / 105, -1 / 280]
+    else
+        @error("The order $order is not implemented for centered finite difference.")
+    end
+
+    right_pos = [i+1 for i in 0:length(coef_right)-1]
+
+    for i in 0:size_f-1
+        current_right_pos = [i + pos for pos in right_pos]
+        current_right_pos = [p < size_f ? p : p - size_f for p in current_right_pos]
+
+        current_left_pos = [i - pos for pos in right_pos]
+        current_left_pos = [p >= 0 ? p :  size_f + p for p in current_left_pos]
+
+        for j in 0:length(coef_right)-1
+            A[i+1, current_right_pos[j+1]+1] += coef_right[j+1]
+            A[i+1, current_left_pos[j+1]+1] += -coef_right[j+1]
+        end
+    end
+
+    return A
+
+end
+
+
+"""
+    Return (v*dx+e*dv) f
+"""
+function T_f(mesh_x, mesh_v, f, e, dx_f, dv_f, order=8)
+
+    dx = mesh_x.dx
+    dv = mesh_v.dx
+    x = mesh_x.x
+    v = mesh_v.x
+
+    A_dx = get_df_FD_matrix(mesh_x.nx, order)
+    A_dv = get_df_FD_matrix(mesh_v.nx, order)
+
+    v_dx_f = ein"jk,k->jk"( dx_f, v)
+
+    e_dv_f = ein"jk,j->jk"( dv_f, e)
+
+    return v_dx_f .+ e_dv_f
+end
+
+function compute_wb_source_2(self, dt)
+
+    (mesh_x, mesh_v, ge, gi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq,
+        dv_fi_eq) = (self.mesh_x, self.mesh_v, self.ge, self.gi, self.fe_eq,
+        self.fi_eq, self.dx_fe_eq, self.dx_fi_eq, self.dv_fe_eq, self.dv_fi_eq)
+
+    e_projection = self.e_projection
+
+    rho = compute_rho(mesh_v, (fi_eq .+ gi) .- (fe_eq .+ ge))
+    e   = compute_e(mesh_x, rho)
+
+    T_fe_eq = T_f(mesh_x, mesh_v, fe_eq, -e, dx_fe_eq, dv_fe_eq)
+    T_fi_eq = T_f(mesh_x, mesh_v, fi_eq, e, dx_fi_eq, dv_fi_eq)
+    self.ge .-= dt .* T_fe_eq
+    self.gi .-= dt .* T_fi_eq
+
+    #    for i in eachindex(e)
+    #        self.ge[i, :] += dt * (e[i] - e_projection[i]) * dv_fe_eq[i, :]
+    #        self.gi[i, :] -= dt * (e[i] - e_projection[i]) * dv_fi_eq[i, :]
+    #    end
+end
+
+
 #=
-
-    def compute_wb_source_2(self, dt):
-        (mesh_x, mesh_v, ge, gi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq,
-            dv_fi_eq) = (self.mesh_x, self.mesh_v, self.ge, self.gi, self.fe_eq,
-            self.fi_eq, self.dx_fe_eq, self.dx_fi_eq, self.dv_fe_eq, self.dv_fi_eq)
-        e_projection = self.e_projection
-
-        rho = compute_rho(mesh_v, (fi_eq + gi) - (fe_eq + ge))
-        e   = compute_e(mesh_x, rho)
-        if True:#e_projection is None:
-            T_fe_eq = T_f(mesh_x, mesh_v, fe_eq, -e, dx_f=dx_fe_eq, dv_f=dv_fe_eq)
-            T_fi_eq = T_f(mesh_x, mesh_v, fi_eq, e, dx_f=dx_fi_eq, dv_f=dv_fi_eq)
-            self.ge[:, :] -= dt * T_fe_eq[:, :]
-            self.gi[:, :] -= dt * T_fi_eq[:, :]
-        else:
-            for i in range(ge.shape[0]):
-                self.ge[i, :] += dt * (e[i] - e_projection[i]) * dv_fe_eq[i, :]
-                self.gi[i, :] -= dt * (e[i] - e_projection[i]) * dv_fi_eq[i, :]
-
 
     def project(self, eq_manager, projection_type):
         mesh_x, mesh_v, fe, fi = (self.mesh_x, self.mesh_v,
