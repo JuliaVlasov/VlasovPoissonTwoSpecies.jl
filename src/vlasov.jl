@@ -105,7 +105,7 @@ function vlasov_poisson(data, mesh_x, mesh_v, coef)
         if it % data.freq_save == 0
             if data.output
                 println("Saving solution...")
-                output.save_output(
+                save(output,
                     scheme.fe,
                     scheme.fi,
                     scheme.fe_eq,
@@ -115,16 +115,16 @@ function vlasov_poisson(data, mesh_x, mesh_v, coef)
             end
         end
 
-        scheme.compute_iteration(dt)
+        compute_iteration(scheme, dt)
 
     end
 
-    output.end_of_simulation()
+    end_of_simulation(output)
 
     if data.output
-        println("-" * 40)
-        println(" Computation ends at T = ", data.T_final)
-        println("-" * 40)
+        println("-"^40)
+        println(" Computation ends at T = $(data.T_final) ")
+        println("-"^40)
     end
 
 end
