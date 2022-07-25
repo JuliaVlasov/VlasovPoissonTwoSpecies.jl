@@ -1,5 +1,10 @@
 export Coef
 
+"""
+$(TYPEDEF)
+
+$(TYPEDFIELDS)
+"""
 Base.@kwdef mutable struct Coef
     solution::Symbol = :JacobiDN
     lambda::Float64 = 1.0

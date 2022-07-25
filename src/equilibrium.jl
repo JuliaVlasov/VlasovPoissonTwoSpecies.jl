@@ -12,6 +12,11 @@ end
 
 export EquilibriumManager
 
+"""
+$(TYPEDEF)
+
+$(TYPEDFIELDS)
+"""
 struct EquilibriumManager
 
     mesh_x::Mesh
@@ -196,7 +201,7 @@ function compute_fe_prime(coef, mesh_x, mesh_v, exp_a_phi_x, dx_phi_x, scale_coe
 
     dv_f_eq = ein"ij,j->ij"(f_eq_prime, v)
 
-    dx_f_eq = - ein"ij,i->ij"(f_eq_prime, dx_phi_x)
+    dx_f_eq = -ein"ij,i->ij"(f_eq_prime, dx_phi_x)
 
     return dx_f_eq, dv_f_eq
 

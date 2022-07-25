@@ -4,9 +4,10 @@ CurrentModule = VlasovPoissonTwoSpecies
 
 # VlasovPoissonTwoSpecies
 
-Modèles cinétiques pour les plasmas de bord
 
-## Description du projet
+## Description du projet CEMRACS
+
+**Modèles cinétiques pour les plasmas de bord**
 
 L'interaction d’un plasma avec un bord matériel est un problème
 très étudié en physique. Lorsqu’un plasma interagit avec une paroi,
@@ -50,7 +51,7 @@ travaux.
 
 Références 
 
-- [1] M. Badsi, M.  Campos-Pinto, B. Despre ́s, A minimization formulation of a bi-kinetic
+- [1] M. Badsi, M. Campos-Pinto, B. Desprès, A minimization formulation of a bi-kinetic
 sheath, 2016, Kinetic Related Models.  
 - [2] M. Badsi, M. Merhenberger, L. Navoret, Numerical stability of plasma sheath, 2018, ESAIM Proc.
 
@@ -59,19 +60,3 @@ Le projet est encadré par
 - Anaïs CRESTETTO, Nantes Université, 
 — Nicolas CROUSEILLES, Inria Rennes - Bretagne Atlantique 
 — Michel MEHRENBERGER, Aix-Marseille Université.
-
-Le projet est financé par : 
-- ANR MUFFIN à hauteur de 5000 € 
-— Contrat de recherche à hauteur de 5000 €, 
-— IRMAR Rennes et école doctorale à hauteur de 2000€.
-
-
-# Code
-
-
-```@index
-```
-
-```@autodocs
-Modules = [VlasovPoissonTwoSpecies]
-```

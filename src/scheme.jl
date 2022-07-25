@@ -2,7 +2,10 @@ using FFTW
 using OMEinsum
 import Statistics: mean
 
-function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, order=2)
+"""
+$(SIGNATURES)
+"""
+function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, order = 2)
 
     mesh_x = advection_x.mesh
     mesh_v = advection_v.mesh
@@ -12,7 +15,7 @@ function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, ord
     if order == 1
 
         rho = compute_rho(mesh_v, fi - fe)
-        e   = compute_e(mesh_x, rho)
+        e = compute_e(mesh_x, rho)
 
         # In case of wb scheme we add e_eq to e.
         if !isnothing(e_eq)
@@ -31,7 +34,7 @@ function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, ord
         advection_x(transpose(fi), v, 0.5 * dt)
 
         rho = compute_rho(mesh_v, fi - fe)
-        e   = compute_e(mesh_x, rho)
+        e = compute_e(mesh_x, rho)
 
         # In case of wb scheme we add e_eq to e.
         if !isnothing(e_eq)
@@ -50,29 +53,45 @@ end
 export Scheme
 
 
+"""
+$(TYPEDEF)
+
+$(TYPEDFIELDS)
+"""
 struct Scheme
 
-    mesh_x :: Mesh
-    mesh_v :: Mesh
-    advection_x :: Advection
-    advection_v :: Advection
-    fe :: Matrix{Float64}
-    fi :: Matrix{Float64}
-    ge :: Matrix{Float64}
-    gi :: Matrix{Float64}
-    ρ_eq :: Vector{Float64}
-    e_eq:: Vector{Float64}
-    fe_eq:: Matrix{Float64}
-    fi_eq:: Matrix{Float64}
-    dx_fe_eq:: Matrix{Float64}
-    dx_fi_eq:: Matrix{Float64}
-    dv_fe_eq:: Matrix{Float64}
-    dv_fi_eq:: Matrix{Float64}
-    wb_scheme :: Bool
-    e_projection :: Vector{Float64}
+    mesh_x::Mesh
+    mesh_v::Mesh
+    advection_x::Advection
+    advection_v::Advection
+    fe::Matrix{Float64}
+    fi::Matrix{Float64}
+    ge::Matrix{Float64}
+    gi::Matrix{Float64}
+    ρ_eq::Vector{Float64}
+    e_eq::Vector{Float64}
+    fe_eq::Matrix{Float64}
+    fi_eq::Matrix{Float64}
+    dx_fe_eq::Matrix{Float64}
+    dx_fi_eq::Matrix{Float64}
+    dv_fe_eq::Matrix{Float64}
+    dv_fi_eq::Matrix{Float64}
+    wb_scheme::Bool
+    e_projection::Vector{Float64}
 
-    function Scheme( mesh_x, mesh_v, fe, fi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq,
-        dv_fe_eq, dv_fi_eq, wb_scheme)
+    function Scheme(
+        mesh_x,
+        mesh_v,
+        fe,
+        fi,
+        fe_eq,
+        fi_eq,
+        dx_fe_eq,
+        dx_fi_eq,
+        dv_fe_eq,
+        dv_fi_eq,
+        wb_scheme,
+    )
 
         advection_x = Advection(mesh_x)
         advection_v = Advection(mesh_v)
@@ -85,15 +104,32 @@ struct Scheme
         if wb_scheme
             ρ_eq .= compute_rho(mesh_v, fi_eq .- fe_eq)
             e_eq .= compute_e(mesh_x, ρ_eq)
-            ge   .= fe .- fe_eq
-            gi   .= fi .- fi_eq
+            ge .= fe .- fe_eq
+            gi .= fi .- fi_eq
         end
 
         e_projection = similar(e_eq)
 
-        new( mesh_x, mesh_v, advection_x, advection_v, fe, fi, ge, gi, ρ_eq, e_eq,
-            fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq, wb_scheme,
-            e_projection )
+        new(
+            mesh_x,
+            mesh_v,
+            advection_x,
+            advection_v,
+            fe,
+            fi,
+            ge,
+            gi,
+            ρ_eq,
+            e_eq,
+            fe_eq,
+            fi_eq,
+            dx_fe_eq,
+            dx_fi_eq,
+            dv_fe_eq,
+            dv_fi_eq,
+            wb_scheme,
+            e_projection,
+        )
 
     end
 
@@ -103,26 +139,34 @@ end
 export compute_rho
 
 """
-    compute_rho(meshv, f)
+$(SIGNATURES)
 
 Compute charge density
-ρ(x,t) = ∫ f(x,v,t) dv
+
+```math
+\\rho(x,t) = \\int f(x,v,t) dv
+```
 """
 function compute_rho(meshv::Mesh, f::Array{Float64,2})
-    
-   dv = meshv.dx
-   rho = dv * sum(f, dims=2)
-   vec(rho .- mean(rho)) # vec squeezes the 2d array returned by sum function
+
+    dv = meshv.dx
+    rho = dv * sum(f, dims = 2)
+    vec(rho .- mean(rho)) # vec squeezes the 2d array returned by sum function
 
 end
 
 export compute_e
 
 """
-    compute_e(meshx, rho)
-compute Ex using that -ik*Ex = rho 
+$(SIGNATURES)
+
+compute Ex using that 
+
+```math
+-ikE_x = \\rho 
+```
 """
-function compute_e(mesh_x :: Mesh, rho :: Vector{Float64})
+function compute_e(mesh_x::Mesh, rho::Vector{Float64})
 
     nx = mesh_x.nx
     k = 2pi / (mesh_x.x_max - mesh_x.x_min)
@@ -130,7 +174,7 @@ function compute_e(mesh_x :: Mesh, rho :: Vector{Float64})
     modes[begin] = 1.0
 
     fft_rho = fft(rho)
-    fft_rho[begin] = 0.
+    fft_rho[begin] = 0.0
     rhok = fft_rho ./ modes
     rhok .*= -1im
 
@@ -139,10 +183,10 @@ function compute_e(mesh_x :: Mesh, rho :: Vector{Float64})
 end
 
 function compute_wb_source(self, dt)
-    mesh_x, mesh_v, ge, gi, dv_fe_eq, dv_fi_eq = (self.mesh_x, self.mesh_v,
-        self.ge, self.gi, self.dv_fe_eq, self.dv_fi_eq)
+    mesh_x, mesh_v, ge, gi, dv_fe_eq, dv_fi_eq =
+        (self.mesh_x, self.mesh_v, self.ge, self.gi, self.dv_fe_eq, self.dv_fi_eq)
     rho_g = compute_rho(mesh_v, gi - ge)
-    e_g   = compute_e(mesh_x, rho_g)
+    e_g = compute_e(mesh_x, rho_g)
     for i in eachindex(e_g)
         self.ge[i, :] .+= dt .* e_g[i] .* dv_fe_eq[i, :]
         self.gi[i, :] .-= dt .* e_g[i] .* dv_fi_eq[i, :]
@@ -151,11 +195,10 @@ end
 
 function compute_wb_vlasov(self, dt)
 
-    advection_x, advection_v, e_eq = (self.advection_x,
-        self.advection_v, self.e_eq)
-    
+    advection_x, advection_v, e_eq = (self.advection_x, self.advection_v, self.e_eq)
+
     compute_wb_source(self, 0.5 * dt)
-    advect_vlasov(advection_x, advection_v, self.ge, self.gi, dt, e_eq, order=2)
+    advect_vlasov(advection_x, advection_v, self.ge, self.gi, dt, e_eq, order = 2)
     compute_wb_source(self, 0.5 * dt)
     self.fe .= self.fe_eq .+ self.ge
     self.fi .= self.fi_eq .+ self.gi
@@ -164,13 +207,12 @@ end
 
 function compute_wb_vlasov_2(self, dt)
 
-    (advection_x, advection_v, e_eq) = (self.advection_x,
-        self.advection_v, self.e_eq)
-    
+    (advection_x, advection_v, e_eq) = (self.advection_x, self.advection_v, self.e_eq)
+
     compute_wb_source_2(self, 0.5 * dt)
     advect_vlasov(advection_x, advection_v, self.ge, self.gi, dt, e_eq)
     compute_wb_source_2(self, 0.5 * dt)
-    
+
     self.fe .= self.fe_eq .+ self.ge
     self.fi .= self.fi_eq .+ self.gi
 
@@ -180,14 +222,13 @@ export compute_iteration
 
 function compute_iteration(self, dt)
     if !self.wb_scheme
-        advect_vlasov(self.advection_x, self.advection_v,
-            self.fe, self.fi, dt, order=2)
+        advect_vlasov(self.advection_x, self.advection_v, self.fe, self.fi, dt, order = 2)
     else
         compute_wb_vlasov_2(self, dt)
     end
 end
 
-function get_df_FD_matrix(size_f, order=8)
+function get_df_FD_matrix(size_f, order = 8)
 
     A = zeros(size_f, size_f)
 
@@ -203,16 +244,16 @@ function get_df_FD_matrix(size_f, order=8)
         @error("The order $order is not implemented for centered finite difference.")
     end
 
-    right_pos = [i+1 for i in 0:length(coef_right)-1]
+    right_pos = [i + 1 for i = 0:length(coef_right)-1]
 
-    for i in 0:size_f-1
+    for i = 0:size_f-1
         current_right_pos = [i + pos for pos in right_pos]
         current_right_pos = [p < size_f ? p : p - size_f for p in current_right_pos]
 
         current_left_pos = [i - pos for pos in right_pos]
-        current_left_pos = [p >= 0 ? p :  size_f + p for p in current_left_pos]
+        current_left_pos = [p >= 0 ? p : size_f + p for p in current_left_pos]
 
-        for j in 0:length(coef_right)-1
+        for j = 0:length(coef_right)-1
             A[i+1, current_right_pos[j+1]+1] += coef_right[j+1]
             A[i+1, current_left_pos[j+1]+1] += -coef_right[j+1]
         end
@@ -224,9 +265,14 @@ end
 
 
 """
-    Return (v*dx+e*dv) f
+$(SIGNATURES)
+
+```math
+(vdx+edv) f
+```
+
 """
-function T_f(mesh_x, mesh_v, f, e, dx_f, dv_f, order=8)
+function T_f(mesh_x, mesh_v, f, e, dx_f, dv_f, order = 8)
 
     dx = mesh_x.dx
     dv = mesh_v.dx
@@ -236,23 +282,32 @@ function T_f(mesh_x, mesh_v, f, e, dx_f, dv_f, order=8)
     A_dx = get_df_FD_matrix(mesh_x.nx, order)
     A_dv = get_df_FD_matrix(mesh_v.nx, order)
 
-    v_dx_f = ein"jk,k->jk"( dx_f, v)
+    v_dx_f = ein"jk,k->jk"(dx_f, v)
 
-    e_dv_f = ein"jk,j->jk"( dv_f, e)
+    e_dv_f = ein"jk,j->jk"(dv_f, e)
 
     return v_dx_f .+ e_dv_f
 end
 
 function compute_wb_source_2(self, dt)
 
-    (mesh_x, mesh_v, ge, gi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq,
-        dv_fi_eq) = (self.mesh_x, self.mesh_v, self.ge, self.gi, self.fe_eq,
-        self.fi_eq, self.dx_fe_eq, self.dx_fi_eq, self.dv_fe_eq, self.dv_fi_eq)
+    (mesh_x, mesh_v, ge, gi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq) = (
+        self.mesh_x,
+        self.mesh_v,
+        self.ge,
+        self.gi,
+        self.fe_eq,
+        self.fi_eq,
+        self.dx_fe_eq,
+        self.dx_fi_eq,
+        self.dv_fe_eq,
+        self.dv_fi_eq,
+    )
 
     e_projection = self.e_projection
 
     rho = compute_rho(mesh_v, (fi_eq .+ gi) .- (fe_eq .+ ge))
-    e   = compute_e(mesh_x, rho)
+    e = compute_e(mesh_x, rho)
 
     T_fe_eq = T_f(mesh_x, mesh_v, fe_eq, -e, dx_fe_eq, dv_fe_eq)
     T_fi_eq = T_f(mesh_x, mesh_v, fi_eq, e, dx_fi_eq, dv_fi_eq)

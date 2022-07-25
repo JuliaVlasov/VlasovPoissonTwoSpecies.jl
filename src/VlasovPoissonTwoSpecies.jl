@@ -1,5 +1,7 @@
 module VlasovPoissonTwoSpecies
 
+using DocStringExtensions
+
 include("mesh.jl")
 include("landau.jl")
 include("coef.jl")
