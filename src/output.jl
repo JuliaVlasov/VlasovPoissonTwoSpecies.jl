@@ -2,6 +2,8 @@
 $(TYPEDEF)
 
 $(TYPEDFIELDS)
+
+Data structure to manage outputs.
 """
 struct OutputManager
 
@@ -87,7 +89,7 @@ end
 """
 $(SIGNATURES)
 
-    Return the normalized energy 
+returns the normalized energy 
 
 ```math
 |e_f - e_eq| / e_eq
