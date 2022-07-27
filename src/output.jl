@@ -1,3 +1,5 @@
+export OutputManager
+
 """
 $(TYPEDEF)
 
@@ -15,15 +17,23 @@ struct OutputManager
     nb_outputs::Int
     t::Vector{Float64}
     compute_energy_eq::Bool
+    energy_fe_init::Float64
+    energy_fi_init::Float64
     energy_fe::Vector{Float64}
     energy_fi::Vector{Float64}
 
     function OutputManager(data, mesh_x, mesh_v, fe_eq_init, fi_eq_init)
+
         nb_outputs = 0
         t = [0.0]
+
         compute_energy_eq = false
-        self.energy_fe = [compute_energy(mesh_x, mesh_v, fe_eq_init)]
-        self.energy_fi = [compute_energy(mesh_x, mesh_v, fi_eq_init)]
+
+        energy_fe_init = compute_energy(mesh_x, mesh_v, fe_eq_init)
+        energy_fi_init = compute_energy(mesh_x, mesh_v, fi_eq_init)
+
+        energy_fe = [energy_fe_init]
+        energy_fi = [energy_fi_init]
 
         new(
             data,
@@ -34,6 +44,8 @@ struct OutputManager
             nb_outputs,
             t,
             compute_energy_eq,
+            energy_fe_init,
+            energy_fi_init,
             energy_fe,
             energy_fi,
         )
@@ -42,17 +54,20 @@ struct OutputManager
 
 end
 
-function save(self, fe, fi, fe_eq, fi_eq, t)
 
-    data = self.data
-    mesh_x = self.mesh_x
-    mesh_v = self.mesh_v
+"""
+$(SIGNATURES)
 
-    push!(self.t, t)
-    e_fe, e_fi = compute_normalized_energy(fe, fi)
-    push!(self.energy_fe, e_fe)
-    push!(self.energy_fi, e_fi)
+returns the normalized energy 
 
+```math
+|e_f - e_eq| / e_eq
+```
+
+where ``e_f`` is the energy of ``f``.
+"""
+function get_normalized_energy(mesh_x, mesh_v, f, energy_eq)
+    return abs(compute_energy(mesh_x, mesh_v, f) - energy_eq) / energy_eq
 end
 
 function compute_normalized_energy(self, fe, fi)
@@ -61,9 +76,24 @@ function compute_normalized_energy(self, fe, fi)
     mesh_v = self.mesh_v
 
     return (
-        get_normalized_energy(mesh_x, mesh_v, fe, self.energy_fe_eq_init),
-        get_normalized_energy(mesh_x, mesh_v, fi, self.energy_fi_eq_init),
+        get_normalized_energy(mesh_x, mesh_v, fe, self.energy_fe_init),
+        get_normalized_energy(mesh_x, mesh_v, fi, self.energy_fi_init),
     )
+
+end
+
+export save
+
+function save(self, fe, fi, fe_eq, fi_eq, t)
+
+    data = self.data
+    mesh_x = self.mesh_x
+    mesh_v = self.mesh_v
+
+    push!(self.t, t)
+    e_fe, e_fi = compute_normalized_energy(self, fe, fi)
+    push!(self.energy_fe, e_fe)
+    push!(self.energy_fi, e_fi)
 
 end
 
@@ -85,18 +115,6 @@ function compute_energy(mesh_x, mesh_v, f)
 
 end
 
+export end_of_simulation
 
-"""
-$(SIGNATURES)
-
-returns the normalized energy 
-
-```math
-|e_f - e_eq| / e_eq
-```
-
-where ``e_f`` is the energy of ``f``.
-"""
-function get_normalized_energy(mesh_x, mesh_v, f, energy_eq)
-    return abs(compute_energy(mesh_x, mesh_v, f) - energy_eq) / energy_eq
-end
+function end_of_simulation(output) end

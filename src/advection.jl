@@ -57,6 +57,7 @@ end
 
 function advect(self, f, v, dt)
 
+    p  = self.p
     nx = self.mesh.nx
     nv = length(v)
     dx = self.mesh.dx

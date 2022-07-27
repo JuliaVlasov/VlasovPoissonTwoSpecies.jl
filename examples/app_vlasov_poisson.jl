@@ -43,7 +43,7 @@ nt = data.nb_time_steps
 dt = tf / nt
 
 eq_manager = EquilibriumManager(coef, mesh_x, mesh_v)
-#output = OutputManager(data, mesh_x, mesh_v, eq_manager.fe_eq, eq_manager.fi_eq)
+output = OutputManager(data, mesh_x, mesh_v, eq_manager.fe, eq_manager.fi)
 
 fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq =
     get_equilibriums(eq_manager, perturbated = false, epsilon = 1e-2)
@@ -51,7 +51,6 @@ fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq =
 fe = perturbate_func(mesh_x, mesh_v, eq_manager.fe, data.perturbation_init)
 fi = perturbate_func(mesh_x, mesh_v, eq_manager.fi, data.perturbation_init)
 
-#=
 scheme = Scheme(
     mesh_x,
     mesh_v,
@@ -104,4 +103,3 @@ if data.output
     println(" Computation ends at T = $(data.T_final) ")
     println("-"^40)
 end
-=#

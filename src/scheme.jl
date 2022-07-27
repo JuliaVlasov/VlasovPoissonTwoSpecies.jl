@@ -22,16 +22,16 @@ function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, ord
             e .+= e_eq
         end
 
-        advection_v(fe, -e, dt)
-        advection_v(fi, e, dt)
+        advect(advection_v,fe, -e, dt)
+        advect(advection_v,fi, e, dt)
 
-        advection_x(transpose(fe), v, dt)
-        advection_x(transpose(fi), v, dt)
+        advect(advection_x,transpose(fe), v, dt)
+        advect(advection_x,transpose(fi), v, dt)
 
     elseif order == 2
 
-        advection_x(transpose(fe), v, 0.5 * dt)
-        advection_x(transpose(fi), v, 0.5 * dt)
+        advect(advection_x, transpose(fe), v, 0.5dt)
+        advect(advection_x, transpose(fi), v, 0.5dt)
 
         rho = compute_rho(mesh_v, fi - fe)
         e = compute_e(mesh_x, rho)
@@ -41,11 +41,11 @@ function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, ord
             e .+= e_eq
         end
 
-        advection_v(fe, -e, dt)
-        advection_v(fi, e, dt)
+        advect(advection_v, fe, -e, dt)
+        advect(advection_v, fi, e, dt)
 
-        advection_x(transpose(fe), v, 0.5 * dt)
-        advection_x(transpose(fi), v, 0.5 * dt)
+        advect(advection_x, transpose(fe), v, 0.5dt)
+        advect(advection_x, transpose(fi), v, 0.5dt)
 
     end
 end
