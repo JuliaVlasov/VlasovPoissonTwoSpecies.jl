@@ -289,6 +289,8 @@ function T_f(mesh_x, mesh_v, f, e, dx_f, dv_f, order = 8)
     return v_dx_f .+ e_dv_f
 end
 
+export compute_wb_source_2
+
 function compute_wb_source_2(scheme, dt)
 
     (mesh_x, mesh_v, ge, gi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq) = (
