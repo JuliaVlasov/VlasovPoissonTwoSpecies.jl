@@ -8,32 +8,8 @@ CurrentModule = VlasovPoissonTwoSpecies
 using Plots
 using VlasovPoissonTwoSpecies
 import SpecialFunctions: ellipk
-
-const refine_dt              = 1
-const refine_factor          = 1
-const eps_perturbation       = 0.001
-
-coef = Coef()
-
-data                   = Data()
-data.wb_scheme         = true
-data.projection        = false
-data.projection_type   = :coefficients   # :BGK
-data.T_final           = 200
-data.nb_time_steps     = 1000 * refine_factor * refine_dt
-data.nx                = 64 * refine_factor
-data.nv                = 64 * refine_factor
-data.x_min             = 0
-data.x_max             = 4 * ellipk(coef.m)
-data.v_min             = -10
-data.v_max             = 10
-data.perturbation_init = (x, v) -> eps_perturbation * (cos(2π * x / (data.x_max - data.x_min) + 1))
-data.output            = true
-data.vtk               = true
-data.freq_save         = 5 * refine_factor * refine_dt
-data.freq_output       = 5 * refine_factor * refine_dt
-data.freq_projection   = 5 * 5 * refine_factor * refine_dt
 ```
+
 
 ```@example vlasov
 function run(coef, data)
@@ -111,6 +87,32 @@ end
 ```
 
 ```@example vlasov
+
+refine_dt              = 1
+refine_factor          = 1
+eps_perturbation       = 0.001
+
+coef = Coef()
+
+data                   = Data()
+data.wb_scheme         = true
+data.projection        = false
+data.projection_type   = :coefficients   # :BGK
+data.T_final           = 200
+data.nb_time_steps     = 1000 * refine_factor * refine_dt
+data.nx                = 64 * refine_factor
+data.nv                = 64 * refine_factor
+data.x_min             = 0
+data.x_max             = 4 * ellipk(coef.m)
+data.v_min             = -10
+data.v_max             = 10
+data.perturbation_init = (x, v) -> eps_perturbation * (cos(2π * x / (data.x_max - data.x_min) + 1))
+data.output            = true
+data.vtk               = true
+data.freq_save         = 5 * refine_factor * refine_dt
+data.freq_output       = 5 * refine_factor * refine_dt
+data.freq_projection   = 5 * 5 * refine_factor * refine_dt
+
 @time output = run(coef, data)
 ```
 
