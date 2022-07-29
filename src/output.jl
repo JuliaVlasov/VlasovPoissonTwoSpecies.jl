@@ -12,8 +12,6 @@ struct OutputManager
     data::Data
     mesh_x::Mesh
     mesh_v::Mesh
-    fe_eq_init::Matrix{Float64}
-    fi_eq_init::Matrix{Float64}
     nb_outputs::Int
     t::Vector{Float64}
     compute_energy_eq::Bool
@@ -39,8 +37,6 @@ struct OutputManager
             data,
             mesh_x,
             mesh_v,
-            fe_eq_init,
-            fi_eq_init,
             nb_outputs,
             t,
             compute_energy_eq,
@@ -70,6 +66,11 @@ function get_normalized_energy(mesh_x, mesh_v, f, energy_eq)
     return abs(compute_energy(mesh_x, mesh_v, f) - energy_eq) / energy_eq
 end
 
+export compute_normalized_energy
+
+"""
+$(SIGNATURES)
+"""
 function compute_normalized_energy(self, fe, fi)
 
     mesh_x = self.mesh_x
@@ -97,6 +98,8 @@ function save(self, fe, fi, fe_eq, fi_eq, t)
 
 end
 
+export compute_energy
+
 """
 $(SIGNATURES)
 
@@ -109,7 +112,7 @@ function compute_energy(mesh_x, mesh_v, f)
     v = mesh_v.x
     dx = mesh_x.dx
     dv = mesh_v.dx
-    energy = f .* v .^ 2
+    energy = f .* v' .^ 2
 
     return dv * dx * sum(energy)
 

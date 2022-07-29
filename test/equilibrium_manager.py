@@ -157,7 +157,7 @@ class EquilibriumManager:
         fe = np.array([np.sqrt(-a / np.pi) * (s1 * (exp_a_phi_xi**(-2))
             * exp_a_v2 + (s2 / np.sqrt(2)) * (exp_a_phi_xi**(-1))
             * exp_a_v2_div_2) for exp_a_phi_xi in exp_a_phi_x])
-        print(fe.shape)
+        
         return fe
 
 

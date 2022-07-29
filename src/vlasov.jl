@@ -44,12 +44,12 @@ function get_equilibriums(eq_manager; perturbated = false, epsilon = 1e-3)
         dv_fe_eq .*= scale_coef
         dx_fe_eq .*= scale_coef
     else
-        fe_eq = eq_manager.fe
-        fi_eq = eq_manager.fi
-        dv_fe_eq = eq_manager.dv_fe
-        dv_fi_eq = eq_manager.dv_fi
-        dx_fe_eq = eq_manager.dx_fe
-        dx_fi_eq = eq_manager.dx_fi
+        fe_eq = copy(eq_manager.fe)
+        fi_eq = copy(eq_manager.fi)
+        dv_fe_eq = copy(eq_manager.dv_fe)
+        dv_fi_eq = copy(eq_manager.dv_fi)
+        dx_fe_eq = copy(eq_manager.dx_fe)
+        dx_fi_eq = copy(eq_manager.dx_fi)
     end
 
     fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq

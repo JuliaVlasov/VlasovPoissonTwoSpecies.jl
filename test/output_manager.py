@@ -7,7 +7,7 @@ def compute_energy(mesh_x, mesh_v, f):
     v  = mesh_v.x
     dx = mesh_x.dx
     dv = mesh_v.dx
-    energy = np.multiply(v**2, f)
+    energy = v**2 * f
 
     return dv * dx * np.sum(energy)
 
@@ -25,8 +25,6 @@ class OutputManager:
         self.data              = data
         self.mesh_x            = mesh_x
         self.mesh_v            = mesh_v
-        self.fe_eq_init        = fe_eq_init
-        self.fi_eq_init        = fi_eq_init
         self.nb_outputs        = 0
         self.t                 = []
         self.energy_fe_eq_init = compute_energy(mesh_x, mesh_v, fe_eq_init)

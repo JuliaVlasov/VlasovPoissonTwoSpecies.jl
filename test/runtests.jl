@@ -17,6 +17,7 @@ from data import Data
 from uniform_mesh import Mesh
 from vlasov_poisson import get_equilibriums, perturbate_func
 from equilibrium_manager import EquilibriumManager
+from output_manager import OutputManager, compute_energy
 from scheme import Scheme
 from tool_box import compute_rho, compute_e
 
@@ -54,6 +55,7 @@ nt = data.nb_time_steps
 dt = tf / nt
 
 eq_manager = EquilibriumManager(mesh_x, mesh_v, data.coef)
+output = OutputManager(data, mesh_x, mesh_v, eq_manager.fe_eq, eq_manager.fi_eq)
 
 fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq = get_equilibriums(
     eq_manager, perturbated=False, epsilon=1e-2)
@@ -108,6 +110,31 @@ v = mesh_v.x
     
     eq_manager = EquilibriumManager(coef, mesh_x, mesh_v)
     output = OutputManager(data, mesh_x, mesh_v, eq_manager.fe, eq_manager.fi)
+
+    @test eq_manager.fe ≈ py"eq_manager.fe_eq"
+    @test eq_manager.fi ≈ py"eq_manager.fi_eq"
+    v = mesh_v.x
+    dx = mesh_x.dx
+    dv = mesh_v.dx
+    @show dv * dx * sum( eq_manager.fe .* (v .^ 2)')
+
+py"""
+v = mesh_v.x
+dx = mesh_x.dx
+dv = mesh_v.dx
+print(dv * dx * np.sum(eq_manager.fe_eq * v**2))
+"""
+
+
+
+    @show energy_fe_init = compute_energy(mesh_x, mesh_v, eq_manager.fe)
+    @show energy_fi_init = compute_energy(mesh_x, mesh_v, eq_manager.fi)
+
+    @test energy_fe_init ≈ py"compute_energy(mesh_x, mesh_v, eq_manager.fe_eq)"
+    @test energy_fi_init ≈ py"compute_energy(mesh_x, mesh_v, eq_manager.fi_eq)"
+
+    @test output.energy_fe_init ≈ py"output.energy_fe_eq_init"
+    @test output.energy_fi_init ≈ py"output.energy_fi_eq_init"
     
     fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq =
         get_equilibriums(eq_manager, perturbated = false, epsilon = 1e-2)
@@ -148,6 +175,7 @@ scheme.advection_v.advect(fe, -e, dt)
 scheme.advection_v.advect(fi, e, dt)
 scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
 scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
+e_fe, e_fi = output.compute_normalized_energy(fe, fi)
 """
 
     advect(scheme.advection_x, fe, v, 0.5dt)
@@ -164,6 +192,10 @@ scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
     @test fe ≈ py"fe"
     @test fi ≈ py"fi"
     
+    e_fe, e_fi = compute_normalized_energy(output, fe, fi)
+
+    @test e_fe ≈ py"e_fe"
+    @test e_fi ≈ py"e_fi"
 
 end
 
