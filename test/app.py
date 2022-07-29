@@ -7,6 +7,7 @@ from vlasov_poisson import get_equilibriums, perturbate_func
 from equilibrium_manager import EquilibriumManager
 from scheme import Scheme
 from output_manager import OutputManager
+from tool_box import compute_rho, compute_e
 
 refine_dt              = 1
 refine_factor          = 1
@@ -56,11 +57,25 @@ fi = perturbate_func(mesh_x, mesh_v, eq_manager.fi_eq,
 scheme = Scheme(mesh_x, mesh_v, fe, fi, fe_eq, fi_eq,
 dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq, data.wb_scheme)
 
+energy_fe = []
+energy_fi = []
+v = mesh_v.x
+
 for it in range(0, nt):
 
     print("Computing time ", it * dt)
-    output.save_output(scheme.fe, scheme.fi, scheme.fe_eq, scheme.fi_eq, it * dt)
-
     scheme.compute_iteration(dt)
 
-plt.plot(output.t, output.energy_fe)
+    #scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
+    #scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
+    #rho = compute_rho(mesh_v, fi - fe)
+    #e = compute_e(mesh_x, rho)
+    #scheme.advection_v.advect(fe, -e, dt)
+    #scheme.advection_v.advect(fi, e, dt)
+    #scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
+    #scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
+    e_fe, e_fi = output.compute_normalized_energy(scheme.fe, scheme.fi)
+    energy_fe.append(e_fe)
+    energy_fi.append(e_fi)
+
+plt.plot(energy_fe)

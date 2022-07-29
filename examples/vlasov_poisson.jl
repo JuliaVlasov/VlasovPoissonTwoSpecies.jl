@@ -3,6 +3,7 @@ using Test
 using FFTW
 using Plots
 import SpecialFunctions: ellipk
+using ProgressMeter
 
 refine_dt              = 1
 refine_factor          = 1
@@ -46,46 +47,27 @@ function run(coef::Coef, data::Data)
     fe = perturbate_func(mesh_x, mesh_v, eq_manager.fe, data.perturbation_init)
     fi = perturbate_func(mesh_x, mesh_v, eq_manager.fi, data.perturbation_init)
     
-    ρ = compute_rho(mesh_v, fi .- fe)
-    e = compute_e(mesh_x, ρ)
-    
     scheme = Scheme( mesh_x, mesh_v, fe, fi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq,
         dv_fe_eq, dv_fi_eq, data.wb_scheme,)
-    output = OutputManager(data, mesh_x, mesh_v, eq_manager.fe, eq_manager.fi)
     
     v = mesh_v.x
     
     e_fe, e_fi = compute_normalized_energy(output, fe, fi)
     
-    time = [0.0]
+    @showprogress 1 for i in 1:nt
     
-    energy_fe = [e_fe]
-    energy_fi = [e_fi]
-    
-    for i in 1:nt
-    
-        advect(scheme.advection_x, fe, v, 0.5dt)
-        advect(scheme.advection_x, fi, v, 0.5dt)
-        ρ = compute_rho(mesh_v, fi .- fe)
-        e = compute_e(mesh_x, ρ)
-        advect(scheme.advection_v, transpose(fe), -e, dt)
-        advect(scheme.advection_v, transpose(fi), e, dt)
-        advect(scheme.advection_x, fe, v, 0.5dt)
-        advect(scheme.advection_x, fi, v, 0.5dt)
-    
-        e_fe, e_fi = compute_normalized_energy(output, fe, fi)
-    
-        push!(time, i*dt)
-        push!(energy_fe, e_fe)
-        push!(energy_fi, e_fi)
+        compute_iteration(scheme, dt)
+        
+        save(output, scheme, i*dt)
     
     end
 
-    time, energy_fe, energy_fi
+    output.t, output.energy_fe, output.energy_fi
 
 end
 
 time, energy_fe, energy_fi = run(coef, data)
 
-plot(time, energy_fi)
+plot(time, energy_fe)
+plot!(time, energy_fi)
 

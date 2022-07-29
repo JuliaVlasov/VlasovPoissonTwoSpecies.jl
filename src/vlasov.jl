@@ -103,7 +103,7 @@ function vlasov_poisson(data, mesh_x, mesh_v, coef)
         if it % data.freq_save == 0
             if data.output
                 println("Saving solution...")
-                save(output, scheme.fe, scheme.fi, scheme.fe_eq, scheme.fi_eq, it * dt)
+                save(output, scheme, it * dt)
             end
         end
 

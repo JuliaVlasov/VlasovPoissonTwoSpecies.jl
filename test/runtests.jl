@@ -113,22 +113,9 @@ v = mesh_v.x
 
     @test eq_manager.fe ≈ py"eq_manager.fe_eq"
     @test eq_manager.fi ≈ py"eq_manager.fi_eq"
-    v = mesh_v.x
-    dx = mesh_x.dx
-    dv = mesh_v.dx
-    @show dv * dx * sum( eq_manager.fe .* (v .^ 2)')
 
-py"""
-v = mesh_v.x
-dx = mesh_x.dx
-dv = mesh_v.dx
-print(dv * dx * np.sum(eq_manager.fe_eq * v**2))
-"""
-
-
-
-    @show energy_fe_init = compute_energy(mesh_x, mesh_v, eq_manager.fe)
-    @show energy_fi_init = compute_energy(mesh_x, mesh_v, eq_manager.fi)
+    energy_fe_init = compute_energy(mesh_x, mesh_v, eq_manager.fe)
+    energy_fi_init = compute_energy(mesh_x, mesh_v, eq_manager.fi)
 
     @test energy_fe_init ≈ py"compute_energy(mesh_x, mesh_v, eq_manager.fe_eq)"
     @test energy_fi_init ≈ py"compute_energy(mesh_x, mesh_v, eq_manager.fi_eq)"
@@ -167,36 +154,46 @@ print(dv * dx * np.sum(eq_manager.fe_eq * v**2))
     @test fi ≈ py"fi"
 
 py"""
-scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
-scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
-rho = compute_rho(mesh_v, fi - fe)
-e = compute_e(mesh_x, rho)
-scheme.advection_v.advect(fe, -e, dt)
-scheme.advection_v.advect(fi, e, dt)
-scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
-scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
-e_fe, e_fi = output.compute_normalized_energy(fe, fi)
+energy_fe = []
+energy_fi = []
+for i in range(100):
+    scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
+    scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
+    rho = compute_rho(mesh_v, fi - fe)
+    e = compute_e(mesh_x, rho)
+    scheme.advection_v.advect(fe, -e, dt)
+    scheme.advection_v.advect(fi, e, dt)
+    scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
+    scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
+    e_fe, e_fi = output.compute_normalized_energy(fe, fi)
+    energy_fe.append(e_fe)
+    energy_fi.append(e_fi)
+
 """
 
-    advect(scheme.advection_x, fe, v, 0.5dt)
-    advect(scheme.advection_x, fi, v, 0.5dt)
-    ρ = compute_rho(mesh_v, fi .- fe)
-    e = compute_e(mesh_x, ρ)
-    advect(scheme.advection_v, transpose(fe), -e, dt)
-    advect(scheme.advection_v, transpose(fi), e, dt)
-    advect(scheme.advection_x, fe, v, 0.5dt)
-    advect(scheme.advection_x, fi, v, 0.5dt)
+    energy_fe = Float64[]
+    energy_fi = Float64[]
+    for i in 1:100
+        advect(scheme.advection_x, fe, v, 0.5dt)
+        advect(scheme.advection_x, fi, v, 0.5dt)
+        ρ = compute_rho(mesh_v, fi .- fe)
+        e = compute_e(mesh_x, ρ)
+        advect(scheme.advection_v, transpose(fe), -e, dt)
+        advect(scheme.advection_v, transpose(fi), e, dt)
+        advect(scheme.advection_x, fe, v, 0.5dt)
+        advect(scheme.advection_x, fi, v, 0.5dt)
+        e_fe, e_fi = compute_normalized_energy(output, fe, fi)
+        push!(energy_fe, e_fe)
+        push!(energy_fi, e_fi)
+    end
 
     @test ρ ≈ py"rho"
     @test e ≈ py"e"
     @test fe ≈ py"fe"
     @test fi ≈ py"fi"
+    @test energy_fe ≈ py"energy_fe"
+    @test energy_fi ≈ py"energy_fi"
     
-    e_fe, e_fi = compute_normalized_energy(output, fe, fi)
-
-    @test e_fe ≈ py"e_fe"
-    @test e_fi ≈ py"e_fi"
-
 end
 
 @testset "Poisson solver" begin

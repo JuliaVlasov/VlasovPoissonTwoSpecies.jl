@@ -23,15 +23,15 @@ struct OutputManager
     function OutputManager(data, mesh_x, mesh_v, fe_eq_init, fi_eq_init)
 
         nb_outputs = 0
-        t = [0.0]
+        t = Float64[]
 
         compute_energy_eq = false
 
         energy_fe_init = compute_energy(mesh_x, mesh_v, fe_eq_init)
         energy_fi_init = compute_energy(mesh_x, mesh_v, fi_eq_init)
 
-        energy_fe = [energy_fe_init]
-        energy_fi = [energy_fi_init]
+        energy_fe = Float64[]
+        energy_fi = Float64[]
 
         new(
             data,
@@ -47,6 +47,25 @@ struct OutputManager
         )
 
     end
+
+end
+
+export compute_energy
+
+"""
+$(SIGNATURES)
+
+```math
+e_f = \\int v^2 f dv
+```
+"""
+function compute_energy(mesh_x, mesh_v, f)
+
+    v = mesh_v.x
+    dx = mesh_x.dx
+    dv = mesh_v.dx
+
+    return dv * dx * sum( f .* v' .^ 2 )
 
 end
 
@@ -85,36 +104,16 @@ end
 
 export save
 
-function save(self, fe, fi, fe_eq, fi_eq, t)
+function save(self, scheme, t)
 
     data = self.data
     mesh_x = self.mesh_x
     mesh_v = self.mesh_v
 
     push!(self.t, t)
-    e_fe, e_fi = compute_normalized_energy(self, fe, fi)
+    e_fe, e_fi = compute_normalized_energy(self, scheme.fe, scheme.fi)
     push!(self.energy_fe, e_fe)
     push!(self.energy_fi, e_fi)
-
-end
-
-export compute_energy
-
-"""
-$(SIGNATURES)
-
-```math
-e_f = \\int v^2 f dv
-```
-"""
-function compute_energy(mesh_x, mesh_v, f)
-
-    v = mesh_v.x
-    dx = mesh_x.dx
-    dv = mesh_v.dx
-    energy = f .* v' .^ 2
-
-    return dv * dx * sum(energy)
 
 end
 
