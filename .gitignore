@@ -5,3 +5,4 @@
 /docs/build/
 *.swp
 docs/Manifest.toml
+*.pyc

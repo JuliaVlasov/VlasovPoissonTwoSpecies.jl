@@ -1,3 +1,4 @@
+using Plots
 using VlasovPoissonTwoSpecies
 import SpecialFunctions: ellipk
 
