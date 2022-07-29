@@ -38,8 +38,9 @@ function get_equilibriums(eq_manager; perturbated = false, epsilon = 1e-3)
             perturbate_func(mesh_x, mesh_v, eq_manager.fi_eq, dx_p)
         )
 
-        @show scale_coef = integrate(mesh_x, mesh_v, fi_eq) / integrate(mesh_x, mesh_v, fe_eq)
-        
+        @show scale_coef =
+            integrate(mesh_x, mesh_v, fi_eq) / integrate(mesh_x, mesh_v, fe_eq)
+
         fe_eq .*= scale_coef
         dv_fe_eq .*= scale_coef
         dx_fe_eq .*= scale_coef

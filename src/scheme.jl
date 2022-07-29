@@ -182,49 +182,49 @@ function compute_e(mesh_x::Mesh, rho::Vector{Float64})
 
 end
 
-function compute_wb_source(self, dt)
+function compute_wb_source(scheme, dt)
     mesh_x, mesh_v, ge, gi, dv_fe_eq, dv_fi_eq =
-        (self.mesh_x, self.mesh_v, self.ge, self.gi, self.dv_fe_eq, self.dv_fi_eq)
+        (scheme.mesh_x, scheme.mesh_v, scheme.ge, scheme.gi, scheme.dv_fe_eq, scheme.dv_fi_eq)
     rho_g = compute_rho(mesh_v, gi - ge)
     e_g = compute_e(mesh_x, rho_g)
     for i in eachindex(e_g)
-        self.ge[i, :] .+= dt .* e_g[i] .* dv_fe_eq[i, :]
-        self.gi[i, :] .-= dt .* e_g[i] .* dv_fi_eq[i, :]
+        scheme.ge[i, :] .+= dt .* e_g[i] .* view(dv_fe_eq, i, :)
+        scheme.gi[i, :] .-= dt .* e_g[i] .* view(dv_fi_eq, i, :)
     end
 end
 
-function compute_wb_vlasov(self, dt)
+function compute_wb_vlasov(scheme, dt)
 
-    advection_x, advection_v, e_eq = (self.advection_x, self.advection_v, self.e_eq)
+    advection_x, advection_v, e_eq = (scheme.advection_x, scheme.advection_v, scheme.e_eq)
 
-    compute_wb_source(self, 0.5 * dt)
-    advect_vlasov(advection_x, advection_v, self.ge, self.gi, dt, e_eq, order = 2)
-    compute_wb_source(self, 0.5 * dt)
-    self.fe .= self.fe_eq .+ self.ge
-    self.fi .= self.fi_eq .+ self.gi
+    compute_wb_source(scheme, 0.5 * dt)
+    advect_vlasov(advection_x, advection_v, scheme.ge, scheme.gi, dt, e_eq, order = 2)
+    compute_wb_source(scheme, 0.5 * dt)
+    scheme.fe .= scheme.fe_eq .+ scheme.ge
+    scheme.fi .= scheme.fi_eq .+ scheme.gi
 
 end
 
-function compute_wb_vlasov_2(self, dt)
+function compute_wb_vlasov_2(scheme, dt)
 
-    (advection_x, advection_v, e_eq) = (self.advection_x, self.advection_v, self.e_eq)
+    (advection_x, advection_v, e_eq) = (scheme.advection_x, scheme.advection_v, scheme.e_eq)
 
-    compute_wb_source_2(self, 0.5 * dt)
-    advect_vlasov(advection_x, advection_v, self.ge, self.gi, dt, e_eq)
-    compute_wb_source_2(self, 0.5 * dt)
+    compute_wb_source_2(scheme, 0.5 * dt)
+    advect_vlasov(advection_x, advection_v, scheme.ge, scheme.gi, dt, e_eq)
+    compute_wb_source_2(scheme, 0.5 * dt)
 
-    self.fe .= self.fe_eq .+ self.ge
-    self.fi .= self.fi_eq .+ self.gi
+    scheme.fe .= scheme.fe_eq .+ scheme.ge
+    scheme.fi .= scheme.fi_eq .+ scheme.gi
 
 end
 
 export compute_iteration
 
-function compute_iteration(self, dt)
-    if !self.wb_scheme
-        advect_vlasov(self.advection_x, self.advection_v, self.fe, self.fi, dt, order = 2)
+function compute_iteration(scheme, dt)
+    if scheme.wb_scheme
+        compute_wb_vlasov_2(scheme, dt)
     else
-        compute_wb_vlasov_2(self, dt)
+        advect_vlasov(scheme.advection_x, scheme.advection_v, scheme.fe, scheme.fi, dt, order = 2)
     end
 end
 
@@ -289,49 +289,49 @@ function T_f(mesh_x, mesh_v, f, e, dx_f, dv_f, order = 8)
     return v_dx_f .+ e_dv_f
 end
 
-function compute_wb_source_2(self, dt)
+function compute_wb_source_2(scheme, dt)
 
     (mesh_x, mesh_v, ge, gi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq) = (
-        self.mesh_x,
-        self.mesh_v,
-        self.ge,
-        self.gi,
-        self.fe_eq,
-        self.fi_eq,
-        self.dx_fe_eq,
-        self.dx_fi_eq,
-        self.dv_fe_eq,
-        self.dv_fi_eq,
+        scheme.mesh_x,
+        scheme.mesh_v,
+        scheme.ge,
+        scheme.gi,
+        scheme.fe_eq,
+        scheme.fi_eq,
+        scheme.dx_fe_eq,
+        scheme.dx_fi_eq,
+        scheme.dv_fe_eq,
+        scheme.dv_fi_eq,
     )
 
-    e_projection = self.e_projection
+    e_projection = scheme.e_projection
 
     rho = compute_rho(mesh_v, (fi_eq .+ gi) .- (fe_eq .+ ge))
     e = compute_e(mesh_x, rho)
 
     T_fe_eq = T_f(mesh_x, mesh_v, fe_eq, -e, dx_fe_eq, dv_fe_eq)
     T_fi_eq = T_f(mesh_x, mesh_v, fi_eq, e, dx_fi_eq, dv_fi_eq)
-    self.ge .-= dt .* T_fe_eq
-    self.gi .-= dt .* T_fi_eq
+    scheme.ge .-= dt .* T_fe_eq
+    scheme.gi .-= dt .* T_fi_eq
 
     #    for i in eachindex(e)
-    #        self.ge[i, :] += dt * (e[i] - e_projection[i]) * dv_fe_eq[i, :]
-    #        self.gi[i, :] -= dt * (e[i] - e_projection[i]) * dv_fi_eq[i, :]
+    #        scheme.ge[i, :] += dt * (e[i] - e_projection[i]) * dv_fe_eq[i, :]
+    #        scheme.gi[i, :] -= dt * (e[i] - e_projection[i]) * dv_fi_eq[i, :]
     #    end
 end
 
 
 #=
 
-    def project(self, eq_manager, projection_type):
-        mesh_x, mesh_v, fe, fi = (self.mesh_x, self.mesh_v,
-            self.fe, self.fi)
-        projection_manager = self.projection_manager
+    def project(scheme, eq_manager, projection_type):
+        mesh_x, mesh_v, fe, fi = (scheme.mesh_x, scheme.mesh_v,
+            scheme.fe, scheme.fi)
+        projection_manager = scheme.projection_manager
 
         if projection_type == "BGK":
             rho = compute_rho(mesh_v, fi - fe)
             phi = compute_phi(mesh_x, -rho)
-            self.e_projection = compute_e(mesh_x, rho)
+            scheme.e_projection = compute_e(mesh_x, rho)
             fe_project, coef_fe = projection_manager.project(fe, -phi)
             fi_project, coef_fi = projection_manager.project(fi, phi)
 
@@ -345,22 +345,22 @@ end
             rho_project = compute_rho(mesh_v, fi_project - fe_project)
             e_project = compute_e(mesh_x, rho_project)
 
-            self.fe_eq = fe_project
-            self.fi_eq = fi_project
-            self.dx_fe_eq, self.dv_fe_eq = projection_manager.get_df(coef_fe, -phi, -self.e_projection)
-            self.dx_fi_eq, self.dv_fi_eq = projection_manager.get_df(coef_fi, phi, self.e_projection)
-            self.dx_fe_eq *= scale_coef_fe
-            self.dx_fi_eq *= scale_coef_fi
-            self.dv_fe_eq *= scale_coef_fe
-            self.dv_fi_eq *= scale_coef_fi
-            self.e_eq = e_project
-            self.ge = fe - self.fe_eq
-            self.gi = fi - self.fi_eq
+            scheme.fe_eq = fe_project
+            scheme.fi_eq = fi_project
+            scheme.dx_fe_eq, scheme.dv_fe_eq = projection_manager.get_df(coef_fe, -phi, -scheme.e_projection)
+            scheme.dx_fi_eq, scheme.dv_fi_eq = projection_manager.get_df(coef_fi, phi, scheme.e_projection)
+            scheme.dx_fe_eq *= scale_coef_fe
+            scheme.dx_fi_eq *= scale_coef_fi
+            scheme.dv_fe_eq *= scale_coef_fe
+            scheme.dv_fi_eq *= scale_coef_fi
+            scheme.e_eq = e_project
+            scheme.ge = fe - scheme.fe_eq
+            scheme.gi = fi - scheme.fi_eq
         elif projection_type == "coefficients":
-            (self.fe_eq, self.fi_eq, self.dx_fe_eq, self.dx_fi_eq,
-               self.dv_fe_eq, self.dv_fi_eq, self.e_eq) = self.optimizer.optimize_coef(self.fe, self.fi, eq_manager)
-            self.ge = fe - self.fe_eq
-            self.gi = fi - self.fi_eq
+            (scheme.fe_eq, scheme.fi_eq, scheme.dx_fe_eq, scheme.dx_fi_eq,
+               scheme.dv_fe_eq, scheme.dv_fi_eq, scheme.e_eq) = scheme.optimizer.optimize_coef(scheme.fe, scheme.fi, eq_manager)
+            scheme.ge = fe - scheme.fe_eq
+            scheme.gi = fi - scheme.fi_eq
         else:
             raise ValueError(f"Projection type {projection_type} does not exist.")
 

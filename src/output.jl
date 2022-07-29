@@ -65,7 +65,7 @@ function compute_energy(mesh_x, mesh_v, f)
     dx = mesh_x.dx
     dv = mesh_v.dx
 
-    return dv * dx * sum( f .* v' .^ 2 )
+    return dv * dx * sum(f .* v' .^ 2)
 
 end
 
