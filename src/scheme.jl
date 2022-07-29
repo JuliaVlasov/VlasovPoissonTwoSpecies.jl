@@ -22,18 +22,18 @@ function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, ord
             e .+= e_eq
         end
 
-        advect(advection_v,fe, -e, dt)
-        advect(advection_v,fi, e, dt)
+        advect(advection_v, transpose(fe), -e, dt)
+        advect(advection_v, transpose(fi), e, dt)
 
-        advect(advection_x,transpose(fe), v, dt)
-        advect(advection_x,transpose(fi), v, dt)
+        advect(advection_x, fe, v, dt)
+        advect(advection_x, fi, v, dt)
 
     elseif order == 2
 
-        advect(advection_x, transpose(fe), v, 0.5dt)
-        advect(advection_x, transpose(fi), v, 0.5dt)
+        advect(advection_x, fe, v, 0.5dt)
+        advect(advection_x, fi, v, 0.5dt)
 
-        rho = compute_rho(mesh_v, fi - fe)
+        rho = compute_rho(mesh_v, fi .- fe)
         e = compute_e(mesh_x, rho)
 
         # In case of wb scheme we add e_eq to e.
@@ -41,11 +41,11 @@ function advect_vlasov(advection_x, advection_v, fe, fi, dt, e_eq = nothing, ord
             e .+= e_eq
         end
 
-        advect(advection_v, fe, -e, dt)
-        advect(advection_v, fi, e, dt)
+        advect(advection_v, transpose(fe), -e, dt)
+        advect(advection_v, transpose(fi), e, dt)
 
-        advect(advection_x, transpose(fe), v, 0.5dt)
-        advect(advection_x, transpose(fi), v, 0.5dt)
+        advect(advection_x, fe, v, 0.5dt)
+        advect(advection_x, fi, v, 0.5dt)
 
     end
 end
@@ -98,8 +98,8 @@ struct Scheme
 
         ρ_eq = zeros(mesh_x.nx)
         e_eq = zeros(mesh_x.nx)
-        ge = similar(fe)
-        gi = similar(fi)
+        ge = zero(fe)
+        gi = zero(fi)
 
         if wb_scheme
             ρ_eq .= compute_rho(mesh_v, fi_eq .- fe_eq)

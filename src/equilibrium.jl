@@ -183,8 +183,8 @@ end
 function compute_fe_prime(coef, mesh_x, mesh_v, exp_a_phi_x, dx_phi_x, scale_coef = false)
 
     v = mesh_v.x
-
     a = coef.a
+
     r1, r2, s1, s2 = get_ode_coef(coef, mesh_x, scale_coef)
 
     exp_a_v2_div_2 = exp.(a .* (v .^ 2 ./ 2))'
@@ -196,12 +196,12 @@ function compute_fe_prime(coef, mesh_x, mesh_v, exp_a_phi_x, dx_phi_x, scale_coe
             a .* (s2 ./ sqrt(2)) .* (exp_a_phi_x .^ (-1)) .* exp_a_v2_div_2
         )
 
-    dv_f_eq = similar(f_eq_prime)
-    dx_f_eq = similar(f_eq_prime)
+    dv_f_eq = zero(f_eq_prime)
+    dx_f_eq = zero(f_eq_prime)
 
     dv_f_eq = ein"ij,j->ij"(f_eq_prime, v)
 
-    dx_f_eq = -ein"ij,i->ij"(f_eq_prime, dx_phi_x)
+    dx_f_eq = ein"ij,i->ij"(f_eq_prime, -dx_phi_x)
 
     return dx_f_eq, dv_f_eq
 

@@ -17,6 +17,8 @@ from data import Data
 from uniform_mesh import Mesh
 from vlasov_poisson import get_equilibriums, perturbate_func
 from equilibrium_manager import EquilibriumManager
+from scheme import Scheme
+from tool_box import compute_rho, compute_e
 
 refine_dt              = 1
 refine_factor          = 1
@@ -61,10 +63,17 @@ fe = perturbate_func(mesh_x, mesh_v, eq_manager.fe_eq,
 fi = perturbate_func(mesh_x, mesh_v, eq_manager.fi_eq,
     data.perturbation_init)
 
+
+scheme = Scheme(mesh_x, mesh_v, fe, fi, fe_eq, fi_eq,
+dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq, data.wb_scheme)
+
+rho = compute_rho(mesh_v, fi - fe)
+e = compute_e(mesh_x, rho)
+
+v = mesh_v.x
+
 """
 
-    fi_py = py"fi"
-    fe_py = py"fe"
 
     refine_dt              = 1
     refine_factor          = 1
@@ -102,12 +111,59 @@ fi = perturbate_func(mesh_x, mesh_v, eq_manager.fi_eq,
     
     fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq =
         get_equilibriums(eq_manager, perturbated = false, epsilon = 1e-2)
+
+    @test fe_eq ≈ py"fe_eq"
+    @test fi_eq ≈ py"fi_eq"
+    @test dx_fe_eq ≈ py"dx_fe_eq"
+    @test dx_fi_eq ≈ py"dx_fi_eq"
+    @test dv_fe_eq ≈ py"dv_fe_eq"
+    @test dv_fi_eq ≈ py"dv_fi_eq"
     
     fe = perturbate_func(mesh_x, mesh_v, eq_manager.fe, data.perturbation_init)
     fi = perturbate_func(mesh_x, mesh_v, eq_manager.fi, data.perturbation_init)
 
-    @test fe ≈ fe_py
-    @test fi ≈ fi_py
+    @test fe ≈ py"fe"
+    @test fi ≈ py"fi"
+
+    ρ = compute_rho(mesh_v, fi .- fe)
+    e = compute_e(mesh_x, ρ)
+
+    @test ρ ≈ py"rho"
+    @test e ≈ py"e"
+
+    scheme = Scheme( mesh_x, mesh_v, fe, fi, fe_eq, fi_eq, dx_fe_eq, dx_fi_eq,
+        dv_fe_eq, dv_fi_eq, data.wb_scheme,)
+
+    v = mesh_v.x
+
+    @test fe ≈ py"fe"
+    @test fi ≈ py"fi"
+
+py"""
+scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
+scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
+rho = compute_rho(mesh_v, fi - fe)
+e = compute_e(mesh_x, rho)
+scheme.advection_v.advect(fe, -e, dt)
+scheme.advection_v.advect(fi, e, dt)
+scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
+scheme.advection_x.advect(np.transpose(fi), v, 0.5*dt)
+"""
+
+    advect(scheme.advection_x, fe, v, 0.5dt)
+    advect(scheme.advection_x, fi, v, 0.5dt)
+    ρ = compute_rho(mesh_v, fi .- fe)
+    e = compute_e(mesh_x, ρ)
+    advect(scheme.advection_v, transpose(fe), -e, dt)
+    advect(scheme.advection_v, transpose(fi), e, dt)
+    advect(scheme.advection_x, fe, v, 0.5dt)
+    advect(scheme.advection_x, fi, v, 0.5dt)
+
+    @test ρ ≈ py"rho"
+    @test e ≈ py"e"
+    @test fe ≈ py"fe"
+    @test fi ≈ py"fi"
+    
 
 end
 
@@ -124,9 +180,7 @@ end
     ϵ, kx = 0.001, 0.5
     f = landau(ϵ, kx, meshx, meshv)
     ρ = compute_rho(meshv, f)
-    @show size(ρ)
     e = compute_e(meshx, ρ)
-    @show size(e)
 
     @test ρ ≈ ϵ .* cos.(kx .* meshx.x)
     @test e ≈ ϵ .* sin.(kx .* meshx.x) ./ kx

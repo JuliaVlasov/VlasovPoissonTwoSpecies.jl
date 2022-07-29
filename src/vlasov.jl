@@ -30,18 +30,19 @@ function get_equilibriums(eq_manager; perturbated = false, epsilon = 1e-3)
         dv_fe_eq = perturbate_func(mesh_x, mesh_v, eq_manager.dv_fe_eq, p)
         dv_fi_eq = perturbate_func(mesh_x, mesh_v, eq_manager.dv_fi_eq, p)
         dx_fe_eq = (
-            perturbate_func(mesh_x, mesh_v, eq_manager.dx_fe_eq, p) +
+            perturbate_func(mesh_x, mesh_v, eq_manager.dx_fe_eq, p) .+
             perturbate_func(mesh_x, mesh_v, eq_manager.fe_eq, dx_p)
         )
         dx_fi_eq = (
-            perturbate_func(mesh_x, mesh_v, eq_manager.dx_fi_eq, p) +
+            perturbate_func(mesh_x, mesh_v, eq_manager.dx_fi_eq, p) .+
             perturbate_func(mesh_x, mesh_v, eq_manager.fi_eq, dx_p)
         )
 
-        scale_coef = integrate(mesh_x, mesh_v, fi_eq) / integrate(mesh_x, mesh_v, fe_eq)
-        fe_eq *= scale_coef
-        dv_fe_eq *= scale_coef
-        dx_fe_eq *= scale_coef
+        @show scale_coef = integrate(mesh_x, mesh_v, fi_eq) / integrate(mesh_x, mesh_v, fe_eq)
+        
+        fe_eq .*= scale_coef
+        dv_fe_eq .*= scale_coef
+        dx_fe_eq .*= scale_coef
     else
         fe_eq = eq_manager.fe
         fi_eq = eq_manager.fi

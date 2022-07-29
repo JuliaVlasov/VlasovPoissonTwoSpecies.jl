@@ -18,7 +18,6 @@ class EquilibriumManager:
             self.Fi_init()
             self.Fe_prime_init()
             self.Fi_prime_init()
-        print(self.fe_eq.shape)
 
     def get_phi(self):
         a = self.coef.get("a", -1.)
@@ -155,13 +154,6 @@ class EquilibriumManager:
 
         *_, s1, s2 = self.get_ode_coef(scale_coef)
 
-        print(exp_a_phi_x.shape)
-        print(exp_a_phi_x[0])
-        print(s1, s2)
-        print(exp_a_v2_div_2.shape)
-        print(exp_a_v2.shape)
-        print(a, s1, s2)
-
         fe = np.array([np.sqrt(-a / np.pi) * (s1 * (exp_a_phi_xi**(-2))
             * exp_a_v2 + (s2 / np.sqrt(2)) * (exp_a_phi_xi**(-1))
             * exp_a_v2_div_2) for exp_a_phi_xi in exp_a_phi_x])
@@ -197,7 +189,6 @@ class EquilibriumManager:
         a = coef.get("a", -1.)
         *_, s1, s2 = self.get_ode_coef(scale_coef)
 
-        # exp_a_phi_x = np.exp(a * phi_x)
         exp_a_v2_div_2 = np.exp(a * (v**2 / 2))
         exp_a_v2 = np.exp(a * v**2)
 

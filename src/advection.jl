@@ -45,9 +45,9 @@ struct Advection
     function Advection(mesh, p = 3)
         modes = [2pi * i / mesh.nx for i = 0:mesh.nx-1]
         eig_bspl = zeros(mesh.nx)
-        fill!(eig_bspl, bspline(p, -(p + 1) ÷ 2, 0.0))
-        for i = 1:(p+1)÷2-1
-            eig_bspl .+= bspline(p, i - (p + 1) ÷ 2, 0.0) * 2 * cos.(i .* modes)
+        eig_bspl .= bspline(p, -div(p+1,2), 0.0)
+        for i in 1:div(p+1,2)-1
+            eig_bspl .+= bspline(p, i - (p+1)÷2, 0.0) * 2 .* cos.(i * modes)
         end
         eigalpha = zeros(ComplexF64, mesh.nx)
         new(mesh, p, modes, eig_bspl, eigalpha)
@@ -55,11 +55,15 @@ struct Advection
 
 end
 
+export advect
+
+"""
+$(SIGNATURES)
+"""
 function advect(self, f, v, dt)
 
     p  = self.p
     nx = self.mesh.nx
-    nv = length(v)
     dx = self.mesh.dx
 
     ft = fft(f, 1)
