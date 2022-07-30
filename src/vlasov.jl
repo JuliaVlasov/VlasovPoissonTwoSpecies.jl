@@ -1,4 +1,8 @@
-export perturbate_func
+export perturbate_func, perturbate
+
+function perturbate(x, v, f, p)
+    (1 .+ p.(x, v')) .* f
+end
 
 function perturbate_func(mesh_x, mesh_v, f, p)
     x = mesh_x.x

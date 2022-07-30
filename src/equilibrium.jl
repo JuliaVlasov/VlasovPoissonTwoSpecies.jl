@@ -1,6 +1,4 @@
 import Elliptic: ellipj
-using OMEinsum
-
 
 function ellipj(u::Vector{Float64}, m::Float64)
     en = ellipj.(u, m)
@@ -199,9 +197,9 @@ function compute_fe_prime(coef, mesh_x, mesh_v, exp_a_phi_x, dx_phi_x, scale_coe
     dv_f_eq = zero(f_eq_prime)
     dx_f_eq = zero(f_eq_prime)
 
-    dv_f_eq = ein"ij,j->ij"(f_eq_prime, v)
+    dv_f_eq = f_eq_prime .* v'
 
-    dx_f_eq = ein"ij,i->ij"(f_eq_prime, -dx_phi_x)
+    dx_f_eq = - f_eq_prime .* dx_phi_x
 
     return dx_f_eq, dv_f_eq
 
@@ -234,8 +232,8 @@ function compute_fi_prime(coef, mesh_x, mesh_v, exp_a_phi_x, dx_phi_x, scale_coe
     dv_f_eq = similar(f_eq_prime)
     dx_f_eq = similar(f_eq_prime)
 
-    dv_f_eq = ein"ij,j->ij"(f_eq_prime, v)
-    dx_f_eq = ein"ij,i->ij"(f_eq_prime, dx_phi_x)
+    dv_f_eq = f_eq_prime .* v'
+    dx_f_eq = f_eq_prime .* dx_phi_x
 
     return dx_f_eq, dv_f_eq
 

@@ -18,8 +18,8 @@ function run(coef, data)
      eq_manager = EquilibriumManager(coef, mesh_x, mesh_v)
      output = OutputManager(data, eq_manager)
 
-     fe = perturbate_func(mesh_x, mesh_v, eq_manager.fe, data.perturbation_init)
-     fi = perturbate_func(mesh_x, mesh_v, eq_manager.fi, data.perturbation_init)
+     fe = perturbate(x, v, eq_manager.fe, data.perturbation_init)
+     fi = perturbate(x, v, eq_manager.fi, data.perturbation_init)
 
      scheme = WellBalanced( fe, fi, eq_manager)
 

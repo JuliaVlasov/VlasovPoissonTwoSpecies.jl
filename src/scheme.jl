@@ -1,5 +1,4 @@
 using FFTW
-using OMEinsum
 import Statistics: mean
 
 abstract type AbstractScheme end
@@ -284,9 +283,9 @@ function T_f(mesh_x, mesh_v, f, e, dx_f, dv_f, order = 8)
     A_dx = get_df_FD_matrix(mesh_x.nx, order)
     A_dv = get_df_FD_matrix(mesh_v.nx, order)
 
-    v_dx_f = ein"jk,k->jk"(dx_f, v)
+    v_dx_f = dx_f .* v'
 
-    e_dv_f = ein"jk,j->jk"(dv_f, e)
+    e_dv_f = dv_f .* e
 
     return v_dx_f .+ e_dv_f
 end
