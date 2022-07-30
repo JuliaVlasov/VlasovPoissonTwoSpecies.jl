@@ -1,17 +1,8 @@
-```@meta
-CurrentModule = VlasovPoissonTwoSpecies
-```
-
-# VlasovPoissonTwoSpecies
-
-```@example vlasov
 using Plots
 using VlasovPoissonTwoSpecies
 import SpecialFunctions: ellipk
-```
+using ProgressMeter
 
-
-```@example vlasov
 function run(coef, data)
     
      mesh_x = Mesh(data.x_min, data.x_max, data.nx)
@@ -26,19 +17,18 @@ function run(coef, data)
      
      eq_manager = EquilibriumManager(coef, mesh_x, mesh_v)
      output = OutputManager(data, eq_manager)
-     
-     fe_eq, fi_eq, dx_fe_eq, dx_fi_eq, dv_fe_eq, dv_fi_eq =
-         get_equilibriums(eq_manager, perturbated = false, epsilon = 1e-2)
-     
+
      fe = perturbate_func(mesh_x, mesh_v, eq_manager.fe, data.perturbation_init)
      fi = perturbate_func(mesh_x, mesh_v, eq_manager.fi, data.perturbation_init)
-     
+
      scheme = WellBalanced( fe, fi, eq_manager)
+
+     #perturbate!(scheme, perturbate_func, ϵ = 1e-2) 
 
      rho = zeros(mesh_x.nx)
      e = zeros(mesh_x.nx)
      
-     for it = 1:nt
+     @showprogress 1 for it = 1:nt
      
          if it % data.freq_save == 0
              if data.output
@@ -72,9 +62,6 @@ function run(coef, data)
      output
 
 end
-```
-
-```@example vlasov
 
 refine_dt              = 1
 refine_factor          = 1
@@ -101,10 +88,7 @@ data.freq_output       = 5 * refine_factor * refine_dt
 data.freq_projection   = 5 * 5 * refine_factor * refine_dt
 
 @time output = run(coef, data)
-```
 
-```@example vlasov
 plot(output.t, output.energy_fe, label="electrons")
 plot!(output.t, output.energy_fi, label="ions", legend=:topleft)
 title!("Kinetic Energy")
-```

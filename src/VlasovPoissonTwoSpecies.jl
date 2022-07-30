@@ -10,6 +10,7 @@ include("equilibrium.jl")
 include("advection.jl")
 include("output.jl")
 include("scheme.jl")
+include("wellbalanced.jl")
 include("vlasov.jl")
 
 end

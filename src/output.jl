@@ -48,6 +48,10 @@ struct OutputManager
 
     end
 
+    OutputManager(data, equilibrium) = 
+        OutputManager(data, equilibrium.mesh_x, equilibrium.mesh_v, 
+                      equilibrium.fe, equilibrium.fi)
+
 end
 
 export compute_energy

@@ -2,6 +2,8 @@ using FFTW
 using OMEinsum
 import Statistics: mean
 
+abstract type AbstractScheme end
+
 """
 $(SIGNATURES)
 """

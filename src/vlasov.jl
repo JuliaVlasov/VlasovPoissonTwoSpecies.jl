@@ -3,9 +3,7 @@ export perturbate_func
 function perturbate_func(mesh_x, mesh_v, f, p)
     x = mesh_x.x
     v = mesh_v.x
-    nx = mesh_x.nx
-    nv = mesh_v.nx
-    [(1 + p(x[i], v[j])) * f[i, j] for i = 1:nx, j = 1:nv]
+    [(1 + p(x[i], v[j])) * f[i, j] for i = eachindex(x), j = eachindex(v)]
 end
 
 

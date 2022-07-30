@@ -60,7 +60,7 @@ export advect
 """
 $(SIGNATURES)
 """
-function advect(self, f, v, dt)
+function advect(self :: Advection, f, v, dt)
 
     p = self.p
     nx = self.mesh.nx
