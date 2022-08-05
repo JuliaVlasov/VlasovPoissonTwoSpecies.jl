@@ -103,5 +103,4 @@ data.freq_projection   = 5 * 5 * refine_factor * refine_dt
 ```@example vlasov
 plot(output.t, output.energy_fe, label="electrons")
 plot!(output.t, output.energy_fi, label="ions", legend=:topleft)
-title!("Kinetic Energy")
 ```
