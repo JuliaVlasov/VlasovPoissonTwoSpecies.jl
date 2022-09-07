@@ -6,3 +6,4 @@
 *.swp
 docs/Manifest.toml
 *.pyc
+final_vlasov/
