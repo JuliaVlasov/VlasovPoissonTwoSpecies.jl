@@ -77,9 +77,11 @@ advect(scheme.advection_v, transpose(scheme.gi), e, dt)
 advect(scheme.advection_x, scheme.ge, v, 0.5dt)
 advect(scheme.advection_x, scheme.gi, v, 0.5dt)
 
+# step 1
+compute_source(scheme, 0.5dt)
+
 scheme.fe .= scheme.fe_eq .+ scheme.ge
 scheme.fi .= scheme.fi_eq .+ scheme.gi
 
-# step 1
-compute_source(scheme, 0.5dt)
+
 ```
