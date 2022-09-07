@@ -31,12 +31,14 @@ function run(coef, data)
      @showprogress 1 for it = 1:nt
      
          if it % data.freq_save == 0
-             if data.output
-                 save(output, scheme, it * dt)
-             end
+             data.output && save(output, scheme, it * dt)
          end
 
-         compute_source(scheme, 0.5dt)
+         rho .= compute_rho(mesh_v, (scheme.fi_eq .+ scheme.gi) .- (scheme.fe_eq .+ scheme.ge))
+         e .= compute_e(mesh_x, rho)
+
+         scheme.ge .-= 0.5dt .* ( scheme.dx_fe_eq .* v' .- scheme.dv_fe_eq .* e)
+         scheme.gi .-= 0.5dt .* ( scheme.dx_fi_eq .* v' .+ scheme.dv_fi_eq .* e)
 
          advect(scheme.advection_x, scheme.ge, v, 0.5dt)
          advect(scheme.advection_x, scheme.gi, v, 0.5dt)
@@ -51,7 +53,11 @@ function run(coef, data)
          advect(scheme.advection_x, scheme.ge, v, 0.5dt)
          advect(scheme.advection_x, scheme.gi, v, 0.5dt)
 
-         compute_source(scheme, 0.5dt)
+         rho .= compute_rho(mesh_v, (scheme.fi_eq .+ scheme.gi) .- (scheme.fe_eq .+ scheme.ge))
+         e .= compute_e(mesh_x, rho)
+
+         scheme.ge .-= 0.5dt .* ( scheme.dx_fe_eq .* v' .- scheme.dv_fe_eq .* e)
+         scheme.gi .-= 0.5dt .* ( scheme.dx_fi_eq .* v' .+ scheme.dv_fi_eq .* e)
 
          scheme.fe .= scheme.fe_eq .+ scheme.ge
          scheme.fi .= scheme.fi_eq .+ scheme.gi
