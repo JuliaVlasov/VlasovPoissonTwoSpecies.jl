@@ -41,7 +41,7 @@ function run(coef, data)
          advect(scheme.advection_x, scheme.ge, v, 0.5dt)
          advect(scheme.advection_x, scheme.gi, v, 0.5dt)
 
-         rho .= compute_rho(scheme)
+         rho .= compute_rho(mesh_v, scheme.gi .- scheme.ge)
          e .= compute_e(mesh_x, rho)
          e .+= scheme.e_eq
 
