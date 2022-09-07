@@ -269,7 +269,7 @@ end
 $(SIGNATURES)
 
 ```math
-(vdx+edv) f
+T_{\\phi} = v \\partial_x - \\partial_x \\phi \\partial_v
 ```
 
 """

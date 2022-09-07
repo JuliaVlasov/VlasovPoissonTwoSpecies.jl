@@ -3,9 +3,19 @@ export Coef
 """
 $(TYPEDEF)
 
-$(TYPEDFIELDS)
+Use this type to set the coefficients for the equation
+
+```math
+\\Big(\\frac{d}{dx} y\\Big)^2 := \\alpha y^4 + \\gamma y^2 + \\epsilon,
+```
+
+Three sets of coefficients are availabe:
+- :JacobiDN
+- :JacobiND
+- :JacobiCN
 """
 Base.@kwdef mutable struct Coef
+    "Method to compute the initial solution"
     solution::Symbol = :JacobiDN
     lambda::Float64 = 1.0
     a::Float64 = -1.0

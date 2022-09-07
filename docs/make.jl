@@ -2,6 +2,7 @@ ENV["GKSwstype"]="100"
 
 using VlasovPoissonTwoSpecies
 using Documenter
+using Plots
 
 DocMeta.setdocmeta!(VlasovPoissonTwoSpecies, :DocTestSetup, :(using VlasovPoissonTwoSpecies); recursive=true)
 
@@ -18,6 +19,8 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Numerical method" => "scheme.md",
+        "Simulation" => "simu.md",
         "API" => "api.md",
     ],
 )

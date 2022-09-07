@@ -14,6 +14,17 @@ export EquilibriumManager
 $(TYPEDEF)
 
 $(TYPEDFIELDS)
+
+
+Stationary solutions to Vlasov-Poisson under the following form
+
+```math
+  \\begin{cases}
+    f^+(x,v) = \\sqrt{\\frac{a}{\\pi}}\\Big(r_1 e^{2 a (\\frac{v^2}{2}+\\phi(x))} + \\frac{r_2}{\\sqrt{2}}  e^{a(\\frac{v^2}{2}+\\phi(x))}\\Big),\\
+        f^-(x,v) = \\sqrt{\\frac{a}{\\mu \\pi}}\\Big(s_1 e^{2 a (\\frac{v^2}{2 \\mu}-\\phi(x))} + \\frac{s_2}{\\sqrt{2}} e^{a(\\frac{v^2}{2 \\mu}-\\phi(x))}\\Big),
+\\end{cases}
+```
+
 """
 struct EquilibriumManager
 

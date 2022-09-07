@@ -129,9 +129,8 @@ export compute_source
 """
 $(SIGNATURES)
 
-compute 
 ```math
-(vdx+edv) f
+\\partial_t g^{\\pm} = \\pm \\partial_x \\phi_g \\partial_v f_0^\\pm
 ```
 
 """
@@ -141,13 +140,11 @@ function compute_source(scheme :: WellBalanced, dt)
     e = compute_e(scheme.mesh_x, rho)
     v = scheme.mesh_v.x
 
-    scheme.t_f .= scheme.dx_fe_eq .* v'
-    scheme.t_f .-= scheme.dv_fe_eq .* e
+    scheme.t_f .= scheme.dx_fe_eq .* v' .- scheme.dv_fe_eq .* e
 
     scheme.ge .-= dt .* scheme.t_f
 
-    scheme.t_f .= scheme.dx_fi_eq .* v'
-    scheme.t_f .+= scheme.dv_fi_eq .* e
+    scheme.t_f .= scheme.dx_fi_eq .* v' .+ scheme.dv_fi_eq .* e
 
     scheme.gi .-= dt .* scheme.t_f
 

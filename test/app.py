@@ -8,6 +8,7 @@ from equilibrium_manager import EquilibriumManager
 from scheme import Scheme
 from output_manager import OutputManager
 from tool_box import compute_rho, compute_e
+from tqdm import tqdm
 
 refine_dt              = 1
 refine_factor          = 1
@@ -20,8 +21,8 @@ data.projection_type   = "coefficients"#"BGK"#
 data.coef              = {"solution type": "JacobiDN", "lambda": 1., "a": -1., "b": 1 + np.sqrt(2) + 0.12,
                           "c": 1., "m": 0.97, "x0": 0.}
 
-data.T_final           = 200
-data.nb_time_steps     = 1000 * refine_factor * refine_dt
+data.T_final           = 1000
+data.nb_time_steps     = 5000 * refine_factor * refine_dt
 data.nx                = 64 * refine_factor
 data.nv                = 64 * refine_factor
 data.x_min             = 0
@@ -61,9 +62,8 @@ energy_fe = []
 energy_fi = []
 v = mesh_v.x
 
-for it in range(0, nt):
+for it in tqdm(range(nt)):
 
-    print("Computing time ", it * dt)
     scheme.compute_iteration(dt)
 
     #scheme.advection_x.advect(np.transpose(fe), v, 0.5*dt)
@@ -78,4 +78,6 @@ for it in range(0, nt):
     energy_fe.append(e_fe)
     energy_fi.append(e_fi)
 
-plt.plot(energy_fe)
+plt.figure()
+plt.plot(energy_fe, label="fe")
+plt.plot(energy_fi, label="fi")

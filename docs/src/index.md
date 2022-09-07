@@ -2,105 +2,60 @@
 CurrentModule = VlasovPoissonTwoSpecies
 ```
 
-# VlasovPoissonTwoSpecies
+# Vlasov-Poisson system
 
-```@example vlasov
+The system considered is the two species Vlasov-Poisson system which is a simple model used to describe a collisionless plasma.
+
+```math
+  \begin{cases}
+    \partial_t f^+ + v \partial_xf^+ - \partial_x \phi \partial_v f^+ &= 0,\\
+    \partial_t f^- + v \partial_xf^- + \mu \partial_x \phi \partial_v f^- &= 0,\\
+  \end{cases}
+```
+where the potential ``\phi := \phi(x)`` satisfy
+```math
+   \partial_{xx} \phi = \int_{\mathbb{R}}(f^- - f^+) dv,
+```
+
+where ``\mu > 0`` is the mass ratio, ``f^+ := f^+(t,x,v)`` and ``f^- := f^-(t,x,v)`` denote the distribution function for the ions and electrons respectively. The system is given with an initial condition
+
+```math
+\begin{equation*}
+  \begin{cases}
+    f^+(0,x,v) = f_{in}^+(x,v),\\
+        f^-(0,x,v) = f_{in}^{-}(x,v),\\
+  \end{cases}
+\end{equation*}
+```
+
+on the domain ``x \in [0, L]``, ``v \in \mathbb{R}`` where we assume periodic boundary conditions in ``x`` and vanishing boundary conditions in ``v``.
+
+The well-balanced numerical scheme is using a micro-macro type decomposition, where the macro part corresponds to the equilibrium and the micro part corresponds to the out of equilibrium part. 
+The numerical solution will be written as ``f^\pm = f_0 ^\pm + g^\pm`` where ``f_0^\pm``  is a given equilibrium and ``g^\pm`` can be seen as a perturbation of ``f_0^\pm`` The unknown of the reformulated problem will be the perturbation ``g^\pm``
+
+To compute the initial solution, you can use the [`Coef`](@ref) type: 
+
+```@example tutorial
 using Plots
 using VlasovPoissonTwoSpecies
-import SpecialFunctions: ellipk
-```
-
-
-```@example vlasov
-function run(coef, data)
-    
-     mesh_x = Mesh(data.x_min, data.x_max, data.nx)
-     mesh_v = Mesh(data.v_min, data.v_max, data.nv)
-      
-     x = mesh_x.x
-     v = mesh_v.x
-
-     tf = data.T_final
-     nt = data.nb_time_steps
-     dt = tf / nt
-     
-     eq_manager = EquilibriumManager(coef, mesh_x, mesh_v)
-     output = OutputManager(data, eq_manager)
-     
-     fe = perturbate(x, v, eq_manager.fe, data.perturbation_init)
-     fi = perturbate(x, v, eq_manager.fi, data.perturbation_init)
-     
-     scheme = WellBalanced( fe, fi, eq_manager)
-
-     rho = zeros(mesh_x.nx)
-     e = zeros(mesh_x.nx)
-     
-     for it = 1:nt
-     
-         if it % data.freq_save == 0
-             if data.output
-                 save(output, scheme, it * dt)
-             end
-         end
-
-         compute_source(scheme, 0.5dt)
-
-         advect(scheme.advection_x, scheme.ge, v, 0.5dt)
-         advect(scheme.advection_x, scheme.gi, v, 0.5dt)
-
-         rho .= compute_rho(scheme)
-         e .= compute_e(mesh_x, rho)
-
-         e .+= scheme.e_eq
-
-         advect(scheme.advection_v, transpose(scheme.ge), -e, dt)
-         advect(scheme.advection_v, transpose(scheme.gi), e, dt)
-
-         advect(scheme.advection_x, scheme.ge, v, 0.5dt)
-         advect(scheme.advection_x, scheme.gi, v, 0.5dt)
-
-         scheme.fe .= scheme.fe_eq .+ scheme.ge
-         scheme.fi .= scheme.fi_eq .+ scheme.gi
-
-         compute_source(scheme, 0.5dt)
-
-     end
-     
-     output
-
-end
-```
-
-```@example vlasov
-
-refine_dt              = 1
-refine_factor          = 1
-eps_perturbation       = 0.001
 
 coef = Coef()
 
-data                   = Data()
-data.projection        = false
-data.projection_type   = :coefficients   # :BGK
-data.T_final           = 200
-data.nb_time_steps     = 1000 * refine_factor * refine_dt
-data.nx                = 64 * refine_factor
-data.nv                = 64 * refine_factor
-data.x_min             = 0
-data.x_max             = 4 * ellipk(coef.m)
-data.v_min             = -10
-data.v_max             = 10
-data.perturbation_init = (x, v) -> eps_perturbation * (cos(2π * x / (data.x_max - data.x_min) + 1))
-data.output            = true
-data.vtk               = true
-data.freq_save         = 5 * refine_factor * refine_dt
-data.freq_output       = 5 * refine_factor * refine_dt
-data.freq_projection   = 5 * 5 * refine_factor * refine_dt
+x_min, x_max, nx = 0., 1., 64
+v_min, v_max, nv = -10., 10, 64
 
-@time output = run(coef, data)
+mesh_x = Mesh(x_min, x_max, nx)
+mesh_v = Mesh(v_min, v_max, nv)
+
+x = mesh_x.x
+v = mesh_v.x
+
+eq = EquilibriumManager(coef, mesh_x, mesh_v)
+
+p = plot(layout=(2), xlabel="x", ylabel="v")
+contourf!(p[1], x, v, eq.fe, title="fe")
+contourf!(p[2], x, v, eq.fi, title="fi")
+
 ```
 
-```@example vlasov
-plot(output.t, output.energy_fe, label="electrons")
-plot!(output.t, output.energy_fi, label="ions", legend=:topleft)
-```
+

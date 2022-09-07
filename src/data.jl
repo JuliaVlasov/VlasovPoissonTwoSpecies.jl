@@ -9,7 +9,7 @@ Base.@kwdef mutable struct Data
     x_min::Float64 = 0
     x_max::Float64 = 1
     v_min::Float64 = -10
-    v_max::Int = 10
+    v_max::Float64 = 10
     output::Bool = true
     vtk::Bool = true
     freq_output::Int = 1
