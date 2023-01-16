@@ -94,30 +94,30 @@ export compute_normalized_energy
 """
 $(SIGNATURES)
 """
-function compute_normalized_energy(self, fe, fi)
+function compute_normalized_energy(output, fe, fi)
 
-    mesh_x = self.mesh_x
-    mesh_v = self.mesh_v
+    mesh_x = output.mesh_x
+    mesh_v = output.mesh_v
 
     return (
-        get_normalized_energy(mesh_x, mesh_v, fe, self.energy_fe_init),
-        get_normalized_energy(mesh_x, mesh_v, fi, self.energy_fi_init),
+        get_normalized_energy(mesh_x, mesh_v, fe, output.energy_fe_init),
+        get_normalized_energy(mesh_x, mesh_v, fi, output.energy_fi_init),
     )
 
 end
 
 export save
 
-function save(self, scheme, t)
+function save(output, scheme, t)
 
-    data = self.data
-    mesh_x = self.mesh_x
-    mesh_v = self.mesh_v
+    data = output.data
+    mesh_x = output.mesh_x
+    mesh_v = output.mesh_v
 
-    push!(self.t, t)
-    e_fe, e_fi = compute_normalized_energy(self, scheme.fe, scheme.fi)
-    push!(self.energy_fe, e_fe)
-    push!(self.energy_fi, e_fi)
+    push!(output.t, t)
+    e_fe, e_fi = compute_normalized_energy(output, scheme.fe, scheme.fi)
+    push!(output.energy_fe, e_fe)
+    push!(output.energy_fi, e_fi)
 
 end
 

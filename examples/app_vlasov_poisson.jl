@@ -108,3 +108,7 @@ function run(coef, data)
 end
 
 output = run(coef, data)
+
+plot(output.t, output.energy_fe, label="electrons")
+plot!(output.t, output.energy_fi, label="ions", legend=:topleft)
+title!("Kinetic Energy")
